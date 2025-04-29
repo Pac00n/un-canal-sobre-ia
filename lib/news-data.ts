@@ -1,0 +1,165 @@
+// lib/news-data.ts
+export interface NewsItem {
+  id: string
+  title: string
+  excerpt: string
+  category: string
+  date: string
+  imageUrl: string
+  featured?: boolean
+  // Add a content field for the full article later if needed
+  content?: string
+}
+
+// Combine all news data into one array
+const allNewsData: NewsItem[] = [
+  // Featured News
+  {
+    id: "1",
+    title: "GPT-5 podría ser anunciado a finales de este año, según fuentes cercanas a OpenAI",
+    excerpt:
+      "La nueva versión del modelo de lenguaje promete capacidades revolucionarias y una comprensión más profunda del contexto.",
+    category: "Noticias",
+    date: "Abril 28, 2025",
+    imageUrl: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
+    featured: true,
+    content: "Contenido completo del artículo sobre GPT-5...", // Placeholder content
+  },
+  {
+    id: "2",
+    title: "Google presenta su nuevo modelo de IA generativa para imágenes médicas",
+    excerpt: "El modelo promete revolucionar el diagnóstico médico con una precisión sin precedentes.",
+    category: "Salud",
+    date: "Abril 27, 2025",
+    imageUrl: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=800&q=80",
+    content: "Contenido completo del artículo sobre Google IA médica...", // Placeholder content
+  },
+  {
+    id: "3",
+    title: "La UE aprueba nuevas regulaciones para el desarrollo de inteligencia artificial",
+    excerpt: "Las nuevas normativas buscan equilibrar la innovación con la protección de derechos fundamentales.",
+    category: "Regulación",
+    date: "Abril 26, 2025",
+    imageUrl: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=800&q=80",
+    content: "Contenido completo del artículo sobre regulación IA en la UE...", // Placeholder content
+  },
+  {
+    id: "4",
+    title: "Investigadores logran avance significativo en IA cuántica",
+    excerpt: "El nuevo enfoque podría acelerar drásticamente el entrenamiento de modelos complejos.",
+    category: "Investigación",
+    date: "Abril 25, 2025",
+    imageUrl: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=800&q=80",
+    content: "Contenido completo del artículo sobre IA cuántica...", // Placeholder content
+  },
+  // Trending News
+  {
+    id: "5",
+    title: "Cómo la IA está transformando la industria de la moda",
+    excerpt:
+      "Desde el diseño hasta la logística, la inteligencia artificial está revolucionando todos los aspectos del sector.",
+    category: "Tendencias",
+    date: "Abril 24, 2025",
+    imageUrl: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=800&q=80",
+    content: "Contenido completo del artículo sobre IA en la moda...", // Placeholder content
+  },
+  {
+    id: "6",
+    title: "Los 5 mejores asistentes de IA para aumentar tu productividad",
+    excerpt: "Analizamos las herramientas más efectivas para optimizar tu flujo de trabajo diario.",
+    category: "Herramientas",
+    date: "Abril 23, 2025",
+    imageUrl: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=800&q=80",
+    content: "Contenido completo del artículo sobre asistentes IA...", // Placeholder content
+  },
+  {
+    id: "7",
+    title: "IA y sostenibilidad: cómo la tecnología puede ayudar a combatir el cambio climático",
+    excerpt: "Proyectos innovadores utilizan inteligencia artificial para abordar desafíos ambientales urgentes.",
+    category: "Medio Ambiente",
+    date: "Abril 22, 2025",
+    imageUrl: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=800&q=80",
+    content: "Contenido completo del artículo sobre IA y sostenibilidad...", // Placeholder content
+  },
+  // Latest News
+  {
+    id: "8",
+    title: "Microsoft invierte $5 mil millones en infraestructura para IA en América Latina",
+    excerpt: "La inversión busca democratizar el acceso a tecnologías avanzadas en la región.",
+    category: "Negocios",
+    date: "Abril 21, 2025",
+    imageUrl: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=800&q=80",
+    content: "Contenido completo del artículo sobre inversión de Microsoft...", // Placeholder content
+  },
+  {
+    id: "9",
+    title: "Nuevo framework promete reducir a la mitad el consumo energético de modelos de IA",
+    excerpt: "La innovación podría hacer que el entrenamiento de grandes modelos sea más accesible y sostenible.",
+    category: "Tecnología",
+    date: "Abril 20, 2025",
+    imageUrl: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=800&q=80",
+    content: "Contenido completo del artículo sobre framework energético...", // Placeholder content
+  },
+  {
+    id: "10",
+    title: "Artistas y IA: la colaboración creativa que está redefiniendo el arte contemporáneo",
+    excerpt: "Cada vez más artistas incorporan herramientas de IA en su proceso creativo con resultados sorprendentes.",
+    category: "Arte",
+    date: "Abril 19, 2025",
+    imageUrl: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=800&q=80",
+    content: "Contenido completo del artículo sobre artistas y IA...", // Placeholder content
+  },
+  {
+    id: "11",
+    title: "La IA conversacional llega a los vehículos autónomos",
+    excerpt: "Los nuevos sistemas prometen una interacción más natural y segura entre pasajeros y vehículos.",
+    category: "Transporte",
+    date: "Abril 18, 2025",
+    imageUrl: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=800&q=80",
+    content: "Contenido completo del artículo sobre IA conversacional en vehículos...", // Placeholder content
+  },
+  {
+    id: "12",
+    title: "Investigadores desarrollan IA capaz de predecir terremotos con mayor precisión",
+    excerpt: "El sistema analiza patrones sísmicos sutiles que pasan desapercibidos para los métodos tradicionales.",
+    category: "Ciencia",
+    date: "Abril 17, 2025",
+    imageUrl: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=800&q=80",
+    content: "Contenido completo del artículo sobre predicción de terremotos...", // Placeholder content
+  },
+  {
+    id: "13",
+    title: "El futuro de la educación: cómo la IA personaliza el aprendizaje",
+    excerpt: "Plataformas adaptativas están transformando la experiencia educativa a todos los niveles.",
+    category: "Educación",
+    date: "Abril 16, 2025",
+    imageUrl: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=800&q=80",
+    content: "Contenido completo del artículo sobre IA en educación...", // Placeholder content
+  },
+]
+
+export function getAllNewsItems(): NewsItem[] {
+  return allNewsData
+}
+
+export function getFeaturedNewsItems(): NewsItem[] {
+  // Find the featured item, or default to the first item if none is explicitly featured
+  const featured = allNewsData.find((item) => item.featured) || allNewsData[0]
+  // Get up to 3 other non-featured items
+  const others = allNewsData.filter((item) => item.id !== featured.id).slice(0, 3)
+  return [featured, ...others] // Return featured first, then others
+}
+
+export function getTrendingNewsItems(): NewsItem[] {
+  // For demo, let's assume IDs 5, 6, 7 are trending
+  return allNewsData.filter((item) => ["5", "6", "7"].includes(item.id))
+}
+
+export function getLatestNewsItems(): NewsItem[] {
+  // For demo, let's take items 8 through 13
+  return allNewsData.filter((item) => parseInt(item.id) >= 8 && parseInt(item.id) <= 13)
+}
+
+export function getNewsItemById(id: string): NewsItem | undefined {
+  return allNewsData.find((item) => item.id === id)
+}
