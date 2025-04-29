@@ -1,35 +1,100 @@
-# Últimos Cambios para el Despliegue Público
+# 🛠️ Reparar endpoint API `/api/news` para recibir publicaciones desde n8n
 
-## Integración de Supabase como Base de Datos
+## 🧩 ¿Qué está pasando?
 
-Este despliegue incluye la integración de Supabase como base de datos para almacenar y gestionar las noticias del sitio web. Esto permite una gestión más eficiente y escalable de los datos.
+Actualmente, n8n intenta enviar una solicitud HTTP `POST` al endpoint:
 
-**Cambios Realizados:**
+```
+https://un-canal-sobre-ia.vercel.app/api/news
+```
 
-*   **Sustitución del archivo JSON local por Supabase:** Se ha reemplazado el archivo `data/news.json` por una base de datos Supabase para almacenar las noticias.
-*   **Actualización de `lib/news-data.ts`:** Se ha modificado el archivo `lib/news-data.ts` para interactuar con la base de datos Supabase en lugar del archivo JSON local. Esto incluye la creación de funciones para leer, escribir y añadir noticias a la base de datos.
-*   **Creación de la API `app/api/news/route.ts`:** Se ha creado una API en `app/api/news/route.ts` para recibir las noticias desde un servicio externo (como n8n) y guardarlas en la base de datos Supabase.
-*   **Corrección de errores de TypeScript:** Se han corregido varios errores de TypeScript en los archivos `app/noticias/[id]/page.tsx`, `app/page.tsx` y `app/api/news/route.ts` para asegurar la correcta tipificación de los datos.
-*   **Actualización de componentes:** Se han actualizado los componentes `components/featured-news.tsx` y `components/news-grid.tsx` para utilizar el tipo `NewsItem` definido en `lib/news-data.ts` y mostrar los datos correctamente.
+Pero el servidor devuelve un error `405 - Method Not Allowed`.  
+Esto significa que el archivo `/pages/api/news.ts` **no tiene soporte para el método POST**, o bien el código no está correctamente implementado.
 
-**Pasos para la Configuración:**
+Además, n8n está enviando un **JSON con la siguiente estructura**, y la API debe ser capaz de leerlo y guardarlo en Supabase:
 
-1.  **Crear una cuenta y un proyecto en Supabase:** Si no tienes una, crea una cuenta gratuita en [supabase.com](https://supabase.com) y crea un nuevo proyecto.
-2.  **Crear una tabla `news` en Supabase:** Define el esquema de la tabla para almacenar las noticias.
-3.  **Configurar las variables de entorno:** Guarda la URL y la clave de acceso de tu proyecto Supabase en las variables de entorno de Vercel.
-    *   `SUPABASE_URL`: Pega la URL de Supabase que copiaste.
-    *   `SUPABASE_ANON_KEY`: Pega la clave anónima de Supabase que copiaste.
-4.  **Crear un archivo `.env.local`:**
-    - Para el entorno de desarrollo local, crea un archivo llamado `.env.local` en la raíz de tu proyecto y añade las siguientes líneas:
+```json
+{
+  "title": "Título de la noticia",
+  "excerpt": "Resumen breve",
+  "category": "tecnología",
+  "imageUrl": "https://example.com/imagen.jpg",
+  "content": "Texto completo",
+  "featured": false
+}
+```
 
-   ```plaintext
-   SUPABASE_URL=tu_supabase_url
-   SUPABASE_ANON_KEY=tu_supabase_anon_key
-   ```
+---
 
-   Asegúrate de reemplazar `tu_supabase_url` y `tu_supabase_anon_key` con los valores reales que obtuviste de Supabase
+## ✅ Objetivo
 
-**Consideraciones:**
+Implementar correctamente el archivo `/pages/api/news.ts` en Next.js para que:
 
-*   Asegúrate de configurar correctamente las variables de entorno en Vercel para que la aplicación pueda acceder a la base de datos Supabase.
-*   Esta versión incluye una API pública para añadir noticias. En un entorno de producción, es fundamental implementar medidas de seguridad (como autenticación) para proteger la API de accesos no autorizados.
+1. **Permita solicitudes `POST`**
+2. **Valide los campos requeridos**
+3. **Use Supabase para guardar la noticia**
+4. **Responda con el estado apropiado**
+
+---
+
+## ✅ Tareas para el archivo `/pages/api/news.ts`
+
+1. Verifica que exista el archivo:
+```
+/pages/api/news.ts
+```
+
+2. Sustituye su contenido por el siguiente:
+
+```ts
+import { NextApiRequest, NextApiResponse } from 'next'
+import { addNewsItem } from '@/lib/news-data' // Asegúrate de que este archivo y función existen
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === 'POST') {
+    const { title, excerpt, category, imageUrl, content, featured } = req.body
+
+    if (!title || !excerpt || !category || !imageUrl || !content) {
+      return res.status(400).json({ message: 'Faltan campos requeridos' })
+    }
+
+    try {
+      const data = await addNewsItem({
+        title,
+        excerpt,
+        category,
+        imageUrl,
+        content,
+        featured: featured ?? false,
+      })
+
+      return res.status(201).json({ message: 'News created', data })
+    } catch (error) {
+      return res.status(500).json({ message: 'Error al guardar en Supabase', error: error.message })
+    }
+  } else {
+    // Método no permitido
+    return res.status(405).json({ message: 'Method not allowed' })
+  }
+}
+```
+
+---
+
+## 📦 Sobre `addNewsItem`
+
+- Esta función debe estar en `lib/news-data.ts`.
+- Debe insertar la noticia en la tabla `news` de Supabase.
+- Supabase ya debe estar configurado en `lib/supabaseClient.ts` con variables `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+
+---
+
+## 📌 Resultado esperado
+
+Una vez corregido, este endpoint:
+
+- Permitirá que n8n envíe un JSON con una noticia.
+- Guardará la noticia en Supabase.
+- Responderá con `201 Created` y la noticia creada.
+
+Prueba usando `curl`, Postman o directamente desde n8n para verificar que todo funcione.

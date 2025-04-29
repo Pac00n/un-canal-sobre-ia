@@ -1,27 +1,22 @@
-// app/api/news/route.ts
-import { addNewsItem, NewsItem } from '@/lib/news-data';
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
+import { addNewsItem } from '@/lib/news-data';
 
-// Omitir 'id' y 'date' porque se generan automáticamente
-type NewNewsItem = Omit<NewsItem, 'id' | 'created_at' | 'featured'> & {
-  title: string;
-  excerpt: string;
-  category: string;
-  imageUrl: string;
-  content: string;
-  featured?: boolean;
-};
-
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const data: NewNewsItem = await request.json();
+    const { title, excerpt, category, imageUrl, content, featured } = await req.json();
 
-    // Validar que los datos contengan los campos obligatorios
-    if (!data.title || !data.excerpt || !data.category || !data.imageUrl || !data.content ) {
-      return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
+    if (!title || !excerpt || !category || !imageUrl || !content) {
+      return NextResponse.json({ message: 'Faltan campos requeridos' }, { status: 400 });
     }
 
-    const newNewsItem = await addNewsItem(data);
+    const newNewsItem = await addNewsItem({
+      title,
+      excerpt,
+      category,
+      imageUrl,
+      content,
+      featured: featured ?? false,
+    });
 
     return NextResponse.json({ message: 'News item added successfully', newsItem: newNewsItem }, { status: 201 });
 
