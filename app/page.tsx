@@ -6,11 +6,11 @@ import { Footer } from "@/components/footer"
 import { HeroNewsletter } from "@/components/hero-newsletter"
 import { getFeaturedNewsItems, getTrendingNewsItems, getLatestNewsItems } from "@/lib/news-data"
 
-export default function Home() {
+export default async function Home() {
   // Fetch data for the homepage sections
-  const featuredNewsItems = getFeaturedNewsItems()
-  const trendingNewsItems = getTrendingNewsItems()
-  const latestNewsItems = getLatestNewsItems()
+  const featuredNewsItems = await getFeaturedNewsItems()
+  const trendingNewsItems = await getTrendingNewsItems()
+  const latestNewsItems = await getLatestNewsItems()
 
   return (
     <main className="flex min-h-screen flex-col">

@@ -1,27 +1,18 @@
-import Image from "next/image"
-import Link from "next/link"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-
-interface NewsItem {
-  id: string
-  title: string
-  excerpt: string
-  category: string
-  date: string
-  imageUrl: string
-  featured?: boolean
-}
+import Image from "next/image";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { NewsItem } from "@/lib/news-data";
 
 interface FeaturedNewsProps {
-  items: NewsItem[]
+  items: NewsItem[];
 }
 
 export function FeaturedNews({ items }: FeaturedNewsProps) {
   // Get the first featured item
-  const featuredItem = items.find((item) => item.featured) || items[0]
+  const featuredItem = items.find((item) => item.featured) || items[0];
   // Get the rest of the items (excluding the featured one)
-  const otherItems = items.filter((item) => item.id !== featuredItem.id).slice(0, 3)
+  const otherItems = items.filter((item) => item.id !== featuredItem.id).slice(0, 3);
 
   return (
     <section className="py-12">
@@ -45,7 +36,7 @@ export function FeaturedNews({ items }: FeaturedNewsProps) {
                         {featuredItem.title}
                       </h2>
                       <p className="mb-4 max-w-2xl text-base text-white/90 md:text-lg">{featuredItem.excerpt}</p>
-                      <div className="text-xs text-white/70">{featuredItem.date}</div>
+                      <div className="text-xs text-white/70">{featuredItem.created_at}</div>
                     </div>
                   </div>
                 </Link>
@@ -58,8 +49,8 @@ export function FeaturedNews({ items }: FeaturedNewsProps) {
                   <Card key={item.id} className="overflow-hidden border-0 shadow-none card-hover">
                     <CardContent className="p-0">
                       <Link href={`/noticias/${item.id}`}>
-                        <div className="grid gap-4 md:grid-cols-[1fr_2fr]">
-                          <div className="relative aspect-video overflow-hidden rounded-lg md:aspect-square">
+                        <div className="flex flex-col gap-4">
+                          <div className="relative aspect-video overflow-hidden rounded-lg">
                             <Image
                               src={item.imageUrl || "/placeholder.svg"}
                               alt={item.title}
@@ -67,13 +58,11 @@ export function FeaturedNews({ items }: FeaturedNewsProps) {
                               className="object-cover transition-transform duration-500 hover:scale-105"
                             />
                           </div>
-                          <div className="flex flex-col justify-center">
-                            <Badge className="mb-2 w-fit bg-primary/10 text-primary hover:bg-primary/20">
-                              {item.category}
-                            </Badge>
-                            <h4 className="mb-2 line-clamp-2 text-xl font-bold">{item.title}</h4>
-                            <p className="line-clamp-2 text-sm text-muted-foreground">{item.excerpt}</p>
-                            <div className="mt-2 text-xs text-muted-foreground">{item.date}</div>
+                          <div className="flex flex-col gap-2 p-2">
+                            <Badge className="w-fit bg-primary/10 text-primary hover:bg-primary/20">{item.category}</Badge>
+                            <h3 className="line-clamp-2 text-xl font-bold">{item.title}</h3>
+                            <p className="line-clamp-3 text-sm text-muted-foreground">{item.excerpt}</p>
+                            <div className="mt-2 text-xs text-muted-foreground">{item.created_at}</div>
                           </div>
                         </div>
                       </Link>
@@ -86,5 +75,5 @@ export function FeaturedNews({ items }: FeaturedNewsProps) {
         </div>
       </div>
     </section>
-  )
+  );
 }

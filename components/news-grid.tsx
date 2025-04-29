@@ -3,14 +3,7 @@ import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 
-interface NewsItem {
-  id: string
-  title: string
-  excerpt: string
-  category: string
-  date: string
-  imageUrl: string
-}
+import { NewsItem } from "@/lib/news-data";
 
 interface NewsGridProps {
   title: string
@@ -41,7 +34,7 @@ export function NewsGrid({ title, items }: NewsGridProps) {
                         <Badge className="w-fit bg-primary/10 text-primary hover:bg-primary/20">{item.category}</Badge>
                         <h3 className="line-clamp-2 text-xl font-bold">{item.title}</h3>
                         <p className="line-clamp-3 text-sm text-muted-foreground">{item.excerpt}</p>
-                        <div className="text-xs text-muted-foreground">{item.date}</div>
+                        <div className="text-xs text-muted-foreground">{item.created_at}</div>
                       </div>
                     </div>
                   </Link>
