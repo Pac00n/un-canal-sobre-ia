@@ -1,3 +1,4 @@
+// Actualizado el 30/04/2025 para forzar redeploy
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
