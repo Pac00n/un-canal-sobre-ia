@@ -34,7 +34,7 @@ export function FeaturedNews({ items = [] }: FeaturedNewsProps) {
           <div className="grid gap-6 lg:grid-cols-2">
             <Card className="overflow-hidden border-0 bg-background shadow-none card-hover h-full">
               <CardContent className="p-0 h-full">
-                <Link href={`/noticias/${featuredItem.id}`} className="block h-full">
+                <Link href={`/noticias/${featuredItem?.id}`} className="block h-full">
                   <div className="relative w-full overflow-hidden rounded-lg flex items-end h-full">
                     <Image
                       src={featuredItem.imageUrl || "/placeholder.svg"}
@@ -59,9 +59,9 @@ export function FeaturedNews({ items = [] }: FeaturedNewsProps) {
               <h3 className="text-2xl font-bold tracking-tight">Últimas Noticias</h3>
               <div className="grid gap-6">
                 {otherItems.map((item) => (
-                  <Card key={item.id} className="overflow-hidden border-0 shadow-none card-hover">
+                  <Card key={item?.id} className="overflow-hidden border-0 shadow-none card-hover">
                     <CardContent className="p-0">
-                      <Link href={`/noticias/${item.id}`}>
+                      <Link href={`/noticias/${item?.id}`}>
                         <div className="flex flex-col gap-4">
                           <div className="relative aspect-video overflow-hidden rounded-lg">
                             <Image
