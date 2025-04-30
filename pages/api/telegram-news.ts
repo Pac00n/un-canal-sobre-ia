@@ -1,8 +1,8 @@
-// Actualizado el 30/04/2025 para forzar redeploy
+// Actualizado el 30/04/2025 para test de conexión simple
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
-// Endpoint para procesar solicitudes desde Telegram
+// Endpoint para procesar solicitudes desde Telegram - MODO DEBUG
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Configuración CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // Log detallado de la solicitud
-    console.log('==== TELEGRAM → OPENAI → WEB ENDPOINT ====');
+    console.log('==== PRUEBA DE CONEXIÓN TELEGRAM → API ====');
     console.log('Headers:', JSON.stringify(req.headers, null, 2));
     console.log('Body:', JSON.stringify(req.body, null, 2));
 
@@ -36,14 +36,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Token simple de seguridad (debe coincidir con el configurado en el bot)
     const expectedToken = process.env.TELEGRAM_API_TOKEN;
     if (expectedToken && token !== expectedToken) {
-      return res.status(401).json({ error: 'Token inválido' });
+      return res.status(401).json({ 
+        error: 'Token inválido', 
+        expected: expectedToken ? 'Configurado' : 'No configurado',
+        received: token
+      });
     }
 
-    // Generar resumen y artículo con OpenAI
-    const articleData = await generateArticleWithOpenAI(url);
+    console.log('Token validado correctamente');
+    console.log('Usando URL de prueba:', url);
     
-    // Guardar en Supabase con service role (bypass RLS)
-    const result = await saveArticleToSupabase(articleData);
+    // Generar contenido de prueba sin usar OpenAI ni Supabase
+    const result = {
+      id: '999',
+      title: 'Artículo de prueba para integración de Telegram',
+      excerpt: 'Esta es una prueba de la integración directa entre Telegram y la API.',
+      category: 'tecnología',
+      imageUrl: 'https://picsum.photos/800/600',
+      content: `<p>Este es un artículo de prueba generado para verificar la correcta integración entre el bot de Telegram y la API.</p><p>La URL recibida fue: ${url}</p>`,
+      featured: false,
+      created_at: new Date().toISOString()
+    };
     
     // Responder con éxito
     return res.status(201).json({
