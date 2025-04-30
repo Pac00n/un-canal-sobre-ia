@@ -80,6 +80,7 @@ interface NewNewsItem { // Interfaz para los datos que se envían a la API
 }
 
 export async function addNewsItem(newItemData: NewNewsItem): Promise<NewsItem | null> {
+  console.log('Adding news item:', newItemData);
   const { data, error } = await supabase
     .from('news')
     .insert([
@@ -96,9 +97,11 @@ export async function addNewsItem(newItemData: NewNewsItem): Promise<NewsItem | 
     .single();
 
   if (error) {
+    console.error('Error adding news item to Supabase:', error);
     console.error('Error adding news item:', error);
     return null;
   }
 
+  console.log('News item added successfully:', data);
   return data || null;
 }

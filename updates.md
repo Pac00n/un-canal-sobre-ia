@@ -97,4 +97,4 @@ Una vez corregido, este endpoint:
 - Guardará la noticia en Supabase.
 - Responderá con `201 Created` y la noticia creada.
 
-Prueba usando `curl`, Postman o directamente desde n8n para verificar que todo funcione.
+**Prueba usando `curl`, Postman o directamente desde n8n para verificar que todo funcione.**
