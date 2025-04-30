@@ -7,6 +7,9 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+// Allow generating pages on demand for IDs not known at build time
+export const dynamicParams = true;
+
 // Define params type
 interface NewsPageParams {
   id: string
