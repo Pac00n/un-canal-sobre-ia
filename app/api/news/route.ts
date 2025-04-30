@@ -8,32 +8,61 @@ export async function OPTIONS() {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+      'Access-Control-Allow-Headers': 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, API-KEY'
     },
   });
 }
 
+// También permitimos GET temporalmente para depuración y compatibilidad con n8n
+export async function GET(req: NextRequest) {
+  // Redirigir a la función POST para manejar la solicitud
+  return POST(req);
+}
+
 export async function POST(req: NextRequest) {
   try {
-    console.log('Received POST request to /api/news');
+    console.log('Received request to /api/news with method:', req.method);
+    console.log('Headers:', Object.fromEntries(req.headers.entries()));
     
-    // Get content type to handle different formats
-    const contentType = req.headers.get('content-type') || '';
-    
+    // Intentar obtener el cuerpo de diferentes maneras
     let body;
-    if (contentType.includes('application/json')) {
+    try {
+      // Intentar como JSON primero
       body = await req.json();
-    } else {
-      // Handle form data or other content types if needed
-      const formData = await req.formData();
-      body = Object.fromEntries(formData);
+    } catch (e) {
+      console.log('No es JSON, intentando como FormData');
+      try {
+        // Intentar como FormData
+        const formData = await req.formData();
+        body = Object.fromEntries(formData);
+      } catch (e2) {
+        console.log('No es FormData, intentando como texto');
+        try {
+          // Intentar como texto
+          const text = await req.text();
+          try {
+            body = JSON.parse(text);
+          } catch (e3) {
+            console.log('No se pudo parsear el texto como JSON');
+            body = { text };
+          }
+        } catch (e4) {
+          console.log('No se pudo obtener el cuerpo de ninguna forma');
+          body = {};
+        }
+      }
     }
     
-    const { title, excerpt, category, imageUrl, content, featured } = body;
-    console.log('Request body:', { title, excerpt, category, imageUrl, content, featured });
+    console.log('Request body type:', typeof body);
+    console.log('Request body:', body);
+    
+    const { title, excerpt, category, imageUrl, content, featured } = body || {};
 
     if (!title || !excerpt || !category || !imageUrl || !content) {
-      return NextResponse.json({ message: 'Faltan campos requeridos' }, { status: 400 });
+      return NextResponse.json({ 
+        message: 'Faltan campos requeridos', 
+        receivedData: body 
+      }, { status: 400 });
     }
 
     const newNewsItem = await addNewsItem({
@@ -45,10 +74,29 @@ export async function POST(req: NextRequest) {
       featured: featured ?? false,
     });
 
-    return NextResponse.json({ message: 'News item added successfully', newsItem: newNewsItem }, { status: 201 });
+    return NextResponse.json({ 
+      message: 'News item added successfully', 
+      newsItem: newNewsItem 
+    }, { 
+      status: 201,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+      }
+    });
 
   } catch (error) {
     console.error('Error in /api/news:', error);
-    return NextResponse.json({ message: 'Error adding news item', error: String(error) }, { status: 500 });
+    return NextResponse.json({ 
+      message: 'Error adding news item', 
+      error: String(error),
+      stack: error instanceof Error ? error.stack : undefined 
+    }, { 
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+      }
+    });
   }
 }
