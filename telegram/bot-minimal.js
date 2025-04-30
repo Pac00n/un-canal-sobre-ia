@@ -16,10 +16,14 @@ const AUTHORIZED_USERS = process.env.AUTHORIZED_TELEGRAM_USERS
 
 // Middleware para restringir acceso
 bot.use(async (ctx, next) => {
-  if (ctx.from && AUTHORIZED_USERS.includes(String(ctx.from.id))) {
+  console.log('Usuario intentando acceder:', ctx.from?.id, 'Usuarios autorizados:', AUTHORIZED_USERS);
+  
+  // Si la lista está vacía o contiene el ID del usuario, permitir acceso
+  if (!AUTHORIZED_USERS.length || (ctx.from && AUTHORIZED_USERS.includes(String(ctx.from.id)))) {
     return next();
   }
-  await ctx.reply('⛔ No tienes permiso para usar este bot.');
+  
+  await ctx.reply(`⛔ No tienes permiso para usar este bot. Tu ID es: ${ctx.from?.id}`);
 });
 
 // Comando de inicio
