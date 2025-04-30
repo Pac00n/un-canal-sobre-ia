@@ -1,5 +1,11 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { addNewsItem } from '@/lib/news-data';
+
+// Inicializar client con service role (bypass RLS)
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 // Define OPTIONS handler to support preflight requests
 export async function OPTIONS() {
@@ -65,15 +71,38 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    const newNewsItem = await addNewsItem({
-      title,
-      excerpt,
-      category,
-      imageUrl,
-      content,
-      featured: featured ?? false,
-    });
+    // Insertar directamente con supabaseAdmin para evitar RLS
+    const { data: newNewsItem, error } = await supabaseAdmin
+      .from('news')
+      .insert([
+        {
+          title,
+          excerpt,
+          category,
+          imageUrl,
+          content,
+          featured: featured ?? false,
+        },
+      ])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error inserting in Supabase:', error);
+      return NextResponse.json({ 
+        message: 'Error adding news item to database', 
+        error: error,
+        body: body
+      }, { 
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        }
+      });
+    }
 
+    console.log('News item inserted successfully with ID:', newNewsItem?.id);
     return NextResponse.json({ 
       message: 'News item added successfully', 
       newsItem: newNewsItem 

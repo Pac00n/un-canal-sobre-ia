@@ -35,15 +35,57 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   
   try {
-    // Datos de ejemplo garantizados para que siempre funcione
-    const newsData = {
-      title: "Noticia de prueba desde n8n",
-      excerpt: "Esto es una prueba de integración con n8n",
-      category: "tecnología",
-      imageUrl: "https://picsum.photos/800/600",
-      content: "Este es el contenido completo de la noticia de prueba enviada desde n8n",
-      featured: false
-    };
+    // Definir interfaz para los datos de la noticia
+    interface NewsData {
+      title: string;
+      excerpt: string;
+      category: string;
+      imageUrl: string;
+      content: string;
+      featured: boolean;
+      created_at?: string;
+      test_id?: string;
+    }
+
+    // Intentar usar datos del request body, si están disponibles
+    let newsData: NewsData | null = null;
+    
+    // Verificar si recibimos datos en el body
+    if (req.body && Object.keys(req.body).length > 0) {
+      console.log('Usando datos recibidos en el body');
+      const { title, excerpt, category, imageUrl, content, featured } = req.body;
+      
+      // Validar que tengamos los campos requeridos
+      if (title && excerpt && category && imageUrl && content) {
+        newsData = {
+          title,
+          excerpt,
+          category,
+          imageUrl,
+          content,
+          featured: featured ?? false
+        };
+      } else {
+        console.log('Body recibido pero faltan campos obligatorios, usando datos de ejemplo');
+      }
+    }
+    
+    // Si no tenemos datos válidos del body, usar datos de ejemplo
+    if (!newsData) {
+      console.log('Usando datos de ejemplo hardcodeados');
+      newsData = {
+        title: "Noticia de prueba desde n8n",
+        excerpt: "Esto es una prueba de integración con n8n",
+        category: "tecnología",
+        imageUrl: "https://picsum.photos/800/600",
+        content: "Este es el contenido completo de la noticia de prueba enviada desde n8n",
+        featured: false
+      };
+    }
+
+    // Añadir identificador único para esta prueba
+    newsData.created_at = new Date().toISOString();
+    newsData.test_id = `test-${Date.now()}`;
 
     // Guardar la noticia usando el cliente de servicio (ignora RLS)
     console.log('Attempting to insert news item using service role key:', newsData);

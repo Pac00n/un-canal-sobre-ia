@@ -49,8 +49,8 @@ export async function getTrendingNewsItems(): Promise<NewsItem[]> {
 
 export async function getLatestNewsItems(): Promise<NewsItem[]> {
   const allNewsData = await getAllNewsItems();
-   // Manteniendo la lógica de ejemplo, ajusta según necesites
-  return allNewsData.filter((item) => parseInt(item.id) >= 8 && parseInt(item.id) <= 13);
+  // Mostrar las 10 noticias más recientes
+  return allNewsData.slice(0, 10);
 }
 
 export async function getNewsItemById(id: string): Promise<NewsItem | undefined> {
