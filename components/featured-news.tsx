@@ -8,11 +8,24 @@ interface FeaturedNewsProps {
   items: NewsItem[];
 }
 
-export function FeaturedNews({ items }: FeaturedNewsProps) {
+export function FeaturedNews({ items = [] }: FeaturedNewsProps) {
+  // Si no hay elementos, mostrar un array vacío
+  if (!items || items.length === 0) {
+    return (
+      <section className="py-12">
+        <div className="container px-4 md:px-6">
+          <div className="text-center">
+            <h3 className="text-2xl font-bold tracking-tight">No hay noticias disponibles</h3>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   // Get the first featured item
   const featuredItem = items.find((item) => item.featured) || items[0];
   // Get the rest of the items (excluding the featured one)
-  const otherItems = items.filter((item) => item.id !== featuredItem.id).slice(0, 3);
+  const otherItems = featuredItem ? items.filter((item) => item.id !== featuredItem.id).slice(0, 3) : [];
 
   return (
     <section className="py-12">
