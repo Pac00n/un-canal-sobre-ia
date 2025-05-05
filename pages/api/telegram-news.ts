@@ -210,5 +210,52 @@ async function saveArticleToSupabase(articleData: any) {
     throw new Error(`Error al guardar en base de datos: ${error.message}`);
   }
 
+  // Después de guardar exitosamente, llamar al endpoint de revalidación
+  try {
+    console.log('Llamando al endpoint de revalidación...');
+    await triggerRevalidation(data.id);
+    console.log('Revalidación completada con éxito');
+  } catch (revalidateError) {
+    // No fallar si la revalidación falla, solo registrar el error
+    console.error('Error en revalidación:', revalidateError);
+  }
+
   return data;
+}
+
+// Función para llamar al endpoint de revalidación
+async function triggerRevalidation(articleId: string) {
+  // URL del endpoint de revalidación (la misma base que el endpoint actual)
+  const baseUrl = process.env.VERCEL_URL 
+    ? `https://${process.env.VERCEL_URL}` 
+    : 'http://localhost:3000';
+  
+  const revalidationUrl = `${baseUrl}/api/revalidate`;
+  const token = process.env.TELEGRAM_API_TOKEN;
+  
+  // Páginas a revalidar
+  const paths = [
+    '/', // Página principal
+    `/noticias/${articleId}` // Página del artículo
+  ];
+  
+  // Llamar a la revalidación para cada path
+  for (const path of paths) {
+    console.log(`Revalidando path: ${path}`);
+    const response = await fetch(revalidationUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        token,
+        path
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Error en revalidación de ${path}: ${errorData.message || response.statusText}`);
+    }
+  }
 }
