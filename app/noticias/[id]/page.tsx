@@ -26,7 +26,7 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function NewsPage({ params }: { params: NewsPageParams }) {
+export default async function NewsPage({ params }: { params: { id: string } }) {
   const newsItem = await getNewsItemById(params.id);
 
   if (!newsItem) {

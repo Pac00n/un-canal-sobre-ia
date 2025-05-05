@@ -5,9 +5,8 @@ const nextConfig = {
   },
   // Revalidación en tiempo real para contenido dinámico
   experimental: {
-    // Habilitar características experimentales que pueden mejorar la revalidación
-    serverActions: true,
-  },
+    // Configuración correcta para Next.js 15
+  }
 }
 
 export default nextConfig
