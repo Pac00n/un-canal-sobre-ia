@@ -13,11 +13,6 @@ export const dynamicParams = true;
 // Force revalidation on each request
 export const revalidate = 0;
 
-// Define params type
-interface NewsPageParams {
-  id: string
-}
-
 // Generate static paths for all news items (optional but good for performance)
 export async function generateStaticParams() {
   const newsItems = await getAllNewsItems();
@@ -26,9 +21,16 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function NewsPage({ params }: { params: { id: string } }) {
-  const newsItem = await getNewsItemById(params.id);
+type Props = {
+  params: {
+    id: string
+  }
+}
 
+export default async function NewsPage(props: Props) {
+  const { id } = props.params;
+  const newsItem = await getNewsItemById(id);
+  
   if (!newsItem) {
     notFound(); // Show 404 page if news item not found
   }
