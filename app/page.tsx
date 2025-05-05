@@ -77,14 +77,14 @@ export default async function Home() {
         </section>
         
         {/* Últimas Noticias */}
-        <section className="py-16 bg-muted/30">
+        <section className="py-16 bg-zinc-900 text-white">
           <div className="container px-4 md:px-6">
             <h2 className="text-3xl font-bold mb-8 text-center">Noticias Recientes</h2>
             
             {latestArticles.length > 0 ? (
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto">
                 {latestArticles.map((article) => (
-                  <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow bg-zinc-800 border-zinc-700">
                     <div className="relative h-48 w-full">
                       <Image 
                         src={article.imageUrl || '/placeholder.svg'}
@@ -94,11 +94,11 @@ export default async function Home() {
                       />
                     </div>
                     <CardContent className="p-4">
-                      <Badge className="mb-2">{article.category}</Badge>
+                      <Badge className="mb-2 bg-primary text-primary-foreground">{article.category}</Badge>
                       <h3 className="text-xl font-bold line-clamp-2 mb-2">{article.title}</h3>
-                      <p className="text-muted-foreground text-sm line-clamp-2 mb-4">{article.excerpt}</p>
+                      <p className="text-zinc-300 text-sm line-clamp-2 mb-4">{article.excerpt}</p>
                       <div className="flex justify-between items-center">
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-zinc-400">
                           {new Date(article.created_at).toLocaleDateString()}
                         </span>
                         <a 
@@ -113,7 +113,7 @@ export default async function Home() {
                 ))}
               </div>
             ) : (
-              <p className="text-center text-muted-foreground">No hay noticias disponibles en este momento.</p>
+              <p className="text-center text-zinc-300">No hay noticias disponibles en este momento.</p>
             )}
           </div>
         </section>
