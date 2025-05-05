@@ -1,19 +1,11 @@
 import { Navbar } from "@/components/navbar"
-import { FeaturedNews } from "@/components/featured-news"
-import { NewsGrid } from "@/components/news-grid"
-import { Newsletter } from "@/components/newsletter"
 import { Footer } from "@/components/footer"
-import { HeroNewsletter } from "@/components/hero-newsletter"
-import { getFeaturedNewsItems, getTrendingNewsItems, getLatestNewsItems } from "@/lib/news-data"
 
 // Force revalidation on each request
 export const revalidate = 0;
 
-export default async function Home() {
-  // Fetch data for the homepage sections
-  const featuredNewsItems = await getFeaturedNewsItems()
-  const trendingNewsItems = await getTrendingNewsItems()
-  const latestNewsItems = await getLatestNewsItems()
+export default function Home() {
+  // Versión simplificada para evitar problemas de compilación
 
   return (
     <main className="flex min-h-screen flex-col">
@@ -46,23 +38,18 @@ export default async function Home() {
                 recursos actualizados diariamente.
               </p>
 
-              {/* Newsletter subscription form in hero section */}
-              <HeroNewsletter />
+              {/* Temporary viewing link */}
+              <div className="mt-8">
+                <a 
+                  href="/api/view-articles" 
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 rounded-md font-medium"
+                >
+                  Ver Noticias Recientes
+                </a>
+              </div>
             </div>
           </div>
         </section>
-
-        {/* Featured News */}
-        <FeaturedNews items={featuredNewsItems} />
-
-        {/* Trending News */}
-        <NewsGrid title="Tendencias en IA" items={trendingNewsItems} />
-
-        {/* Newsletter */}
-        <Newsletter />
-
-        {/* Latest News */}
-        <NewsGrid title="Últimas Noticias" items={latestNewsItems} />
       </div>
       <Footer />
     </main>
