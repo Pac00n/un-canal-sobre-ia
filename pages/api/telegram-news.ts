@@ -158,8 +158,9 @@ async function generateArticleWithOpenAI(url: string) {
       const articleData = JSON.parse(cleanContent);
       console.log('Artículo generado correctamente');
       
-      // Asegurarse de que la URL original esté incluida
-      articleData.source_url = url;
+      // Almacenar la URL en el objeto para nuestra referencia, pero no se guardará en la BD
+      // No usar source_url ya que esa columna no existe en la tabla
+      articleData._originalUrl = url;
       
       return articleData;
     } catch (e: any) {
@@ -198,7 +199,6 @@ async function saveArticleToSupabase(articleData: any) {
         imageUrl: articleData.imageUrl,
         content: articleData.content,
         featured: articleData.featured || false,
-        source_url: articleData.source_url || null, // URL original
         created_at: new Date().toISOString()
       }
     ])
