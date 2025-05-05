@@ -6,6 +6,9 @@ import { Footer } from "@/components/footer"
 import { HeroNewsletter } from "@/components/hero-newsletter"
 import { getFeaturedNewsItems, getTrendingNewsItems, getLatestNewsItems } from "@/lib/news-data"
 
+// Force revalidation on each request
+export const revalidate = 0;
+
 export default async function Home() {
   // Fetch data for the homepage sections
   const featuredNewsItems = await getFeaturedNewsItems()

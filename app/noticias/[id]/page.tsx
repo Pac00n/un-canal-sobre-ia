@@ -10,6 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 // Allow generating pages on demand for IDs not known at build time
 export const dynamicParams = true;
 
+// Force revalidation on each request
+export const revalidate = 0;
+
 // Define params type
 interface NewsPageParams {
   id: string
