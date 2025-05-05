@@ -1,11 +1,37 @@
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { createClient } from '@supabase/supabase-js'
+import Image from 'next/image'
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 // Force revalidation on each request
 export const revalidate = 0;
 
-export default function Home() {
-  // Versión simplificada para evitar problemas de compilación
+// Función para obtener las últimas noticias
+async function getLatestArticles() {
+  const supabaseUrl = process.env.SUPABASE_URL || '';
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  
+  const { data, error } = await supabase
+    .from('news')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(2);
+  
+  if (error) {
+    console.error('Error fetching latest articles:', error);
+    return [];
+  }
+  
+  return data || [];
+}
+
+export default async function Home() {
+  // Obtener las dos últimas noticias
+  const latestArticles = await getLatestArticles();
 
   return (
     <main className="flex min-h-screen flex-col">
@@ -38,16 +64,57 @@ export default function Home() {
                 recursos actualizados diariamente.
               </p>
 
-              {/* Temporary viewing link */}
               <div className="mt-8">
                 <a 
                   href="/api/view-articles" 
                   className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 rounded-md font-medium"
                 >
-                  Ver Noticias Recientes
+                  Ver Todas las Noticias
                 </a>
               </div>
             </div>
+          </div>
+        </section>
+        
+        {/* Últimas Noticias */}
+        <section className="py-16 bg-muted/30">
+          <div className="container px-4 md:px-6">
+            <h2 className="text-3xl font-bold mb-8 text-center">Noticias Recientes</h2>
+            
+            {latestArticles.length > 0 ? (
+              <div className="grid gap-6 grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto">
+                {latestArticles.map((article) => (
+                  <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="relative h-48 w-full">
+                      <Image 
+                        src={article.imageUrl || '/placeholder.svg'}
+                        alt={article.title}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <CardContent className="p-4">
+                      <Badge className="mb-2">{article.category}</Badge>
+                      <h3 className="text-xl font-bold line-clamp-2 mb-2">{article.title}</h3>
+                      <p className="text-muted-foreground text-sm line-clamp-2 mb-4">{article.excerpt}</p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(article.created_at).toLocaleDateString()}
+                        </span>
+                        <a 
+                          href={`/api/view-articles?id=${article.id}`} 
+                          className="text-primary hover:underline text-sm font-medium"
+                        >
+                          Leer más
+                        </a>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground">No hay noticias disponibles en este momento.</p>
+            )}
           </div>
         </section>
       </div>
