@@ -82,142 +82,67 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-// Función para generar contenido con OpenAI API v2 (Assistants)
+// Función para generar contenido con OpenAI Chat API - Sin necesidad de asistente
 async function generateArticleWithOpenAI(url: string) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error('OPENAI_API_KEY no configurada');
 
   try {
-    // Configurar los encabezados para la API v2 de Assistants
-    const baseUrl = 'https://api.openai.com/v1';
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-      'OpenAI-Beta': 'assistants=v2'
-    };
-
-    console.log('Procesando URL con OpenAI Assistants API v2:', url);
-
-    // 1. Crear un nuevo thread
-    console.log('1. Creando thread...');
-    const threadRes = await fetch(`${baseUrl}/threads`, { method: 'POST', headers });
-    if (!threadRes.ok) {
-      const err = await threadRes.json().catch(() => null);
-      throw new Error(`Error creando thread: ${err?.error?.message || threadRes.statusText}`);
-    }
-    const threadData = await threadRes.json();
-    const threadId = threadData.id;
-    console.log('Thread creado:', threadId);
-
-    // 2. Añadir mensaje al thread con la URL y las instrucciones
-    console.log('2. Añadiendo mensaje al thread...');
-    const msgBody = { 
-      role: 'user', 
-      content: `
-        Genera un artículo periodístico completo basado en esta URL: "${url}"
-        
-        Debes crear un artículo original sobre tecnología o inteligencia artificial.
-        El formato de respuesta DEBE ser EXCLUSIVAMENTE un objeto JSON válido con esta estructura:
-        
-        {
-          "title": "Título atractivo y conciso",
-          "excerpt": "Resumen breve de 1-2 frases",
-          "category": "tecnología",
-          "imageUrl": "https://picsum.photos/800/600",
-          "content": "Contenido completo del artículo con 3-4 párrafos en formato HTML con etiquetas <p></p>",
-          "featured": false,
-          "source_url": "${url}"
-        }
-
-        NO incluyas ningún otro texto fuera del objeto JSON.
-      `
-    };
+    console.log('Procesando URL con OpenAI Chat API:', url);
     
-    const msgRes = await fetch(`${baseUrl}/threads/${threadId}/messages`, {
-      method: 'POST', 
-      headers, 
-      body: JSON.stringify(msgBody)
+    // Usar la API de Chat directamente (no requiere un asistente)
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4-turbo-preview',
+        messages: [
+          {
+            role: 'system',
+            content: 'Eres un periodista especializado en tecnología e inteligencia artificial.'
+          },
+          {
+            role: 'user',
+            content: `
+              Genera un artículo periodístico completo basado en esta URL: "${url}"
+              
+              Debes crear un artículo sobre tecnología o inteligencia artificial.
+              Formatea la respuesta EXCLUSIVAMENTE como un objeto JSON con esta estructura:
+              
+              {
+                "title": "Título atractivo y conciso",
+                "excerpt": "Resumen breve de 1-2 frases",
+                "category": "tecnología",
+                "imageUrl": "https://picsum.photos/800/600",
+                "content": "Contenido completo del artículo con 3-4 párrafos en formato HTML con etiquetas <p></p>",
+                "featured": false,
+                "source_url": "${url}"
+              }
+              
+              NO incluyas ningún texto fuera del objeto JSON. El contenido debe estar en formato HTML simple.
+            `
+          }
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.7,
+        max_tokens: 2000
+      })
     });
-    
-    if (!msgRes.ok) {
-      const err = await msgRes.json().catch(() => null);
-      throw new Error(`Error enviando mensaje: ${err?.error?.message || msgRes.statusText}`);
-    }
-    console.log('Mensaje añadido al thread');
 
-    // 3. Ejecutar asistente con instrucciones para generar JSON
-    console.log('3. Ejecutando asistente...');
-    const runBody = {
-      assistant_id: process.env.OPENAI_ASSISTANT_ID || 'asst_abc123', // Usar un ID genérico si no está configurado
-      tools: [{ type: "code_interpreter" }],
-      instructions: `Eres un periodista especializado en tecnología e inteligencia artificial. 
-Analiza la URL y crea un artículo completo en formato JSON según la estructura solicitada.`
-    };
-    
-    const runRes = await fetch(`${baseUrl}/threads/${threadId}/runs`, {
-      method: 'POST', 
-      headers, 
-      body: JSON.stringify(runBody)
-    });
-    
-    if (!runRes.ok) {
-      const err = await runRes.json().catch(() => null);
-      throw new Error(`Error ejecutando asistente: ${err?.error?.message || runRes.statusText}`);
-    }
-    
-    const runData = await runRes.json();
-    const runId = runData.id;
-    console.log('Asistente ejecutado, run ID:', runId);
-
-    // 4. Polling para esperar el resultado
-    console.log('4. Esperando respuesta (polling)...');
-    let status = runData.status;
-    const start = Date.now();
-    
-    while (status === 'queued' || status === 'in_progress') {
-      // Timeout de 2 minutos
-      if (Date.now() - start > 120000) throw new Error('Timeout en ejecución del asistente');
-      
-      // Esperar 2 segundos entre cada consulta
-      await new Promise(r => setTimeout(r, 2000));
-      
-      // Verificar el estado
-      const statusRes = await fetch(`${baseUrl}/threads/${threadId}/runs/${runId}`, { headers });
-      
-      if (!statusRes.ok) {
-        console.log('Error al verificar estado:', statusRes.status, statusRes.statusText);
-        break;
-      }
-      
-      const statusData = await statusRes.json();
-      status = statusData.status;
-      console.log('Estado actual:', status);
-    }
-    
-    if (status !== 'completed') {
-      throw new Error(`El asistente no completó la tarea correctamente. Estado final: ${status}`);
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(`Error de OpenAI: ${error.error?.message || 'Desconocido'}`);
     }
 
-    // 5. Obtener mensajes con la respuesta
-    console.log('5. Obteniendo respuesta final...');
-    const messagesRes = await fetch(`${baseUrl}/threads/${threadId}/messages`, { headers });
+    console.log('Respuesta recibida de OpenAI');
+    const data = await response.json();
+    const content = data.choices[0]?.message?.content;
     
-    if (!messagesRes.ok) {
-      const err = await messagesRes.json().catch(() => null);
-      throw new Error(`Error obteniendo mensajes: ${err?.error?.message || messagesRes.statusText}`);
-    }
-    
-    const messagesData = await messagesRes.json();
-    const assistantMsg = messagesData.data.find((m: any) => m.role === 'assistant');
-    
-    if (!assistantMsg) {
-      throw new Error('No se encontró respuesta del asistente');
-    }
-    
-    // Extraer el texto de la respuesta (formato v2)
-    const content = assistantMsg.content?.[0]?.text?.value;
     if (!content) {
-      throw new Error('El asistente no generó contenido válido');
+      throw new Error('OpenAI no generó contenido');
     }
     
     console.log('Contenido obtenido, parseando JSON...');
