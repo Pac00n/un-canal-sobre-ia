@@ -1,0 +1,20 @@
+{
+  "name": "telegram-news-bot",
+  "version": "1.0.0",
+  "description": "Bot de Telegram para Un Canal Sobre IA",
+  "main": "bot-minimal.js",
+  "scripts": {
+    "start": "node bot-minimal.js",
+    "dev": "nodemon bot-minimal.js",
+    "test": "echo \"No tests configured\" && exit 0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.7",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "telegraf": "^4.15.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
