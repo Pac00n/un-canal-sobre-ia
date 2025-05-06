@@ -11,7 +11,7 @@ export default function AdminNoticias() {
   const [isLoading, setIsLoading] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [password, setPassword] = useState('')
-  const [noticias, setNoticias] = useState([])
+  const [noticias, setNoticias] = useState<any[]>([])
   const [error, setError] = useState('')
 
   // Estados para el formulario
@@ -22,7 +22,52 @@ export default function AdminNoticias() {
     image_url: '',
     is_featured: false,
   })
-  const [imageFile, setImageFile] = useState(null)
+  const [urlToGenerate, setUrlToGenerate] = useState('')
+  const [isGenerating, setIsGenerating] = useState(false)
+  
+  // Función para generar artículo con IA
+  const generateArticle = async () => {
+    if (!urlToGenerate) {
+      setError('Por favor, introduce una URL para generar el artículo')
+      return
+    }
+    
+    setIsGenerating(true)
+    setError('')
+    
+    try {
+      const response = await fetch('/api/generate-article', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: urlToGenerate }),
+      })
+      
+      if (!response.ok) {
+        throw new Error('Error al generar el artículo')
+      }
+      
+      const data = await response.json()
+      
+      // Actualizar el formulario con los datos generados
+      setFormData({
+        title: data.title || '',
+        content: data.content || '',
+        source_url: urlToGenerate,
+        image_url: '',
+        is_featured: false,
+      })
+      
+      setUrlToGenerate('')
+    } catch (error) {
+      console.error('Error:', error)
+      setError('Error al generar el artículo. Inténtalo de nuevo.')
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+  const [imageFile, setImageFile] = useState<File | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [currentId, setCurrentId] = useState(null)
 
@@ -40,7 +85,7 @@ export default function AdminNoticias() {
   }, [])
 
   // Funciones de autenticación simple
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
     setError('')
@@ -78,16 +123,16 @@ export default function AdminNoticias() {
     setIsLoading(false)
   }
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type, checked } = e.target as HTMLInputElement
     setFormData({
       ...formData,
       [name]: type === 'checkbox' ? checked : value
     })
   }
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0]
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null
     if (file && file.type.startsWith('image/')) {
       setImageFile(file)
     }
@@ -96,25 +141,43 @@ export default function AdminNoticias() {
   const uploadImage = async () => {
     if (!imageFile) return formData.image_url
 
-    const fileName = `${Date.now()}-${imageFile.name}`
-    const { data, error } = await supabase.storage
-      .from('news-images')
-      .upload(`noticias/${fileName}`, imageFile)
+    try {
+      // Comprobar si el bucket existe o crearlo
+      const { data: buckets } = await supabase.storage.listBuckets()
+      if (!buckets.find((b: any) => b.name === 'news-images')) {
+        console.log('Creando bucket news-images...')
+        const { error: bucketError } = await supabase.storage.createBucket('news-images', {
+          public: true
+        })
+        if (bucketError) {
+          console.error('Error creando bucket:', bucketError)
+          throw bucketError
+        }
+      }
 
-    if (error) {
-      console.error('Error uploading image:', error)
-      throw error
+      const fileName = `${Date.now()}-${imageFile.name}`
+      const { data, error } = await supabase.storage
+        .from('news-images')
+        .upload(`noticias/${fileName}`, imageFile)
+
+      if (error) {
+        console.error('Error uploading image:', error)
+        throw error
+      }
+
+      // Obtener URL pública
+      const { data: { publicUrl } } = supabase.storage
+        .from('news-images')
+        .getPublicUrl(`noticias/${fileName}`)
+
+      return publicUrl
+    } catch (err) {
+      console.error('Error en el proceso de subida de imagen:', err)
+      return '' // Devolver string vacío si hay error
     }
-
-    // Obtener URL pública
-    const { data: { publicUrl } } = supabase.storage
-      .from('news-images')
-      .getPublicUrl(`noticias/${fileName}`)
-
-    return publicUrl
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
     setError('')
@@ -158,7 +221,11 @@ export default function AdminNoticias() {
       setCurrentId(null)
       
       // Revalidar la ruta de noticias para actualizar en el frontal
-      await fetch('/api/revalidate?path=/noticias')
+      try {
+        await fetch('/api/revalidate?path=/noticias')
+      } catch (revalidateError) {
+        console.error('Error revalidando:', revalidateError)
+      }
       
       fetchNoticias()
     } catch (err) {
@@ -169,7 +236,7 @@ export default function AdminNoticias() {
     setIsLoading(false)
   }
 
-  const handleEdit = (noticia) => {
+  const handleEdit = (noticia: any) => {
     setFormData({
       title: noticia.title,
       content: noticia.content,
@@ -184,7 +251,7 @@ export default function AdminNoticias() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string | number) => {
     if (!confirm('¿Estás seguro de que quieres eliminar esta noticia?')) return
     
     setIsLoading(true)
@@ -272,6 +339,28 @@ export default function AdminNoticias() {
             {error}
           </div>
         )}
+        
+        {/* Generador de artículos con IA */}
+        <div className="bg-white p-6 rounded-lg shadow mb-6">
+          <h2 className="text-lg font-semibold mb-4">Generar Artículo con IA</h2>
+          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
+            <input
+              type="url"
+              placeholder="Pega aquí la URL del artículo original"
+              value={urlToGenerate}
+              onChange={(e) => setUrlToGenerate(e.target.value)}
+              className="flex-1 shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            />
+            <button
+              onClick={generateArticle}
+              disabled={isGenerating || !urlToGenerate}
+              className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
+            >
+              {isGenerating ? 'Generando...' : 'Generar Contenido'}
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">Pega una URL y la IA generará un artículo completo para ti.</p>
+        </div>
         
         {/* Formulario de creación/edición de noticias */}
         <div className="bg-white p-6 rounded-lg shadow mb-6">

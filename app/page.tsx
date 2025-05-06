@@ -10,8 +10,13 @@ export const revalidate = 0;
 
 // Función para obtener las últimas noticias
 async function getLatestArticles() {
-  const supabaseUrl = process.env.SUPABASE_URL || '';
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '';
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  
+  if (!supabaseUrl) {
+    console.error('Error: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_URL is required');
+    return [];
+  }
   
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
   
