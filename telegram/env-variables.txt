@@ -1,0 +1,22 @@
+# Variables de entorno para la integración Telegram → OpenAI → Web
+# Copia este archivo como '.env' en la carpeta telegram
+
+# === BOT DE TELEGRAM ===
+# Token del bot (obtenido de BotFather)
+TELEGRAM_BOT_TOKEN=123456789:ABCdefGhIJKlmnOPQrsTUVwxyZ
+
+# Token de seguridad para comunicación entre el bot y la API
+# Inventa un valor aleatorio y úsalo tanto aquí como en Vercel
+TELEGRAM_API_TOKEN=secreto-personalizado-para-seguridad
+
+# Lista de IDs de usuarios autorizados (separados por comas)
+# Puedes obtener tu ID enviando un mensaje al bot @userinfobot
+AUTHORIZED_TELEGRAM_USERS=123456789
+
+# === OPENAI ===
+# No es necesario en el bot, pero sí en Vercel
+# OPENAI_API_KEY=sk-...
+
+# === ENDPOINT DE LA API ===
+# URL completa del endpoint (debe coincidir con tu dominio en Vercel)
+API_ENDPOINT=https://un-canal-sobre-ia.vercel.app/api/telegram-news

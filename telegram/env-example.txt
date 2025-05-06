@@ -1,0 +1,15 @@
+# Este es un ejemplo de archivo .env
+# Crea una copia llamada .env y completa con tus valores reales
+
+# Token del bot de Telegram (obtenido de BotFather)
+TELEGRAM_BOT_TOKEN=123456789:ABCdefGhIJKlmnOPQrsTUVwxyZ
+
+# API Key de OpenAI
+OPENAI_API_KEY=sk-...
+
+# Endpoint de la API para publicar noticias
+API_ENDPOINT=https://un-canal-sobre-ia.vercel.app/api/n8n-test
+
+# IDs de Telegram de usuarios autorizados (separados por comas)
+# Puedes obtener tu ID enviando un mensaje a @userinfobot
+AUTHORIZED_TELEGRAM_USERS=123456789,987654321

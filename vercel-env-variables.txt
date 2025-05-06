@@ -1,0 +1,19 @@
+# Variables de entorno para configurar en Vercel
+# Copia y pega estas variables en el panel de Vercel > Settings > Environment Variables
+
+# === OPENAI ===
+# Tu clave API de OpenAI
+OPENAI_API_KEY=sk-tu-clave-api-openai
+
+# === SUPABASE ===
+# URL de tu proyecto Supabase (confirmaste que es esta)
+SUPABASE_URL=https://jicyrqayowgaepkvalno.supabase.co
+
+# Clave de rol de servicio (service role key) para bypassear RLS
+# Encuéntrala en el panel de Supabase > Settings > API
+SUPABASE_SERVICE_ROLE_KEY=eyJh...completar-con-tu-clave...
+
+# === SEGURIDAD ===
+# Token para la comunicación entre Telegram y tu API
+# Debe ser el mismo valor que configuraste en el bot
+TELEGRAM_API_TOKEN=secreto-personalizado-para-seguridad
