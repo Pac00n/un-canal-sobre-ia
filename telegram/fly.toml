@@ -1,0 +1,17 @@
+app = "un-canal-sobre-ia"
+primary_region = "cdg"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+
+[processes]
+  app = "node bot-minimal.js"
