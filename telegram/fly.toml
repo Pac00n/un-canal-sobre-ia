@@ -2,16 +2,25 @@ app = "un-canal-sobre-ia"
 primary_region = "cdg"
 
 [build]
-  dockerfile = "Dockerfile"
+  builder = "heroku/buildpacks:20"
 
 [env]
   PORT = "8080"
+  NODE_ENV = "production"
 
-[http_service]
+[[services]]
   internal_port = 8080
-  force_https = true
+  protocol = "tcp"
   auto_stop_machines = false
   auto_start_machines = true
+  
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
 
 [processes]
-  app = "node bot-minimal.js"
+  worker = "node bot-minimal.js"
