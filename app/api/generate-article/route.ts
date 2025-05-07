@@ -1,14 +1,88 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '../../../utils/supabase/server';
+
+// Función auxiliar para registrar logs
+function logToConsole(message: string, data?: any) {
+  const timestamp = new Date().toISOString();
+  console.log(`[GENERATE ARTICLE] ${timestamp} - ${message}`, data ? JSON.stringify(data).substring(0, 1000) : '');
+}
 
 export async function POST(req: NextRequest) {
+  logToConsole('Iniciando generación de artículo');
+  
   const { url } = await req.json();
   if (!url) {
+    logToConsole('Error: URL requerida');
     return NextResponse.json({ error: 'URL requerida' }, { status: 400 });
   }
+  
   try {
+    // 1. Generar artículo con OpenAI
+    logToConsole('Generando artículo para URL', { url });
     const article = await generateArticleWithAssistant(url);
-    return NextResponse.json(article);
+    logToConsole('Artículo generado exitosamente', { title: article.title });
+    
+    // 2. Guardar en Supabase
+    logToConsole('Guardando artículo en Supabase');
+    try {
+      // Inicializar cliente de Supabase
+      const supabase = createClient();
+      
+      // Preparar datos para insertar
+      const newsData = {
+        title: article.title,
+        content: article.content,
+        excerpt: article.excerpt,
+        source_url: url,
+        image_url: article.image_url || 'https://picsum.photos/800/600', // URL de imagen por defecto
+        category: article.category || 'tecnología',
+        is_featured: false,
+        created_at: new Date().toISOString()
+      };
+      
+      logToConsole('Datos preparados para insertar', newsData);
+      
+      // Insertar en la tabla news
+      const { data, error } = await supabase
+        .from('news')
+        .insert(newsData)
+        .select()
+        .single();
+      
+      if (error) {
+        logToConsole('Error guardando en Supabase', { error: error.message });
+        throw new Error(`Error guardando en Supabase: ${error.message}`);
+      }
+      
+      logToConsole('Artículo guardado exitosamente', { id: data.id });
+      
+      // Intentar revalidar la página de noticias
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/revalidate?path=/noticias`, { method: 'GET' });
+        logToConsole('Página de noticias revalidada');
+      } catch (revalidateError) {
+        logToConsole('Error al revalidar página', { error: revalidateError });
+        // Continuar aunque falle la revalidación
+      }
+      
+      // Devolver datos del artículo + id generado
+      return NextResponse.json({
+        ...article,
+        id: data.id,
+        stored: true
+      });
+      
+    } catch (dbError: any) {
+      logToConsole('Error en operación de base de datos', { message: dbError.message });
+      // Aun si falla el guardado, devolver el artículo generado
+      return NextResponse.json({
+        ...article,
+        stored: false,
+        error: dbError.message
+      });
+    }
   } catch (error: any) {
+    logToConsole('Error general en generación de artículo', { message: error.message });
     return NextResponse.json({ error: error.message || 'Error al generar artículo' }, { status: 500 });
   }
 }
