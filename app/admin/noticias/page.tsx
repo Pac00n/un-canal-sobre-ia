@@ -144,7 +144,7 @@ export default function AdminNoticias() {
     try {
       // Comprobar si el bucket existe o crearlo
       const { data: buckets } = await supabase.storage.listBuckets()
-      if (!buckets.find((b: any) => b.name === 'news-images')) {
+    if (!buckets || !buckets.find((b: any) => b.name === 'news-images')) {
         console.log('Creando bucket news-images...')
         const { error: bucketError } = await supabase.storage.createBucket('news-images', {
           public: true
