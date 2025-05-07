@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isAuthorizedUser } from './config';
+
+// Variable de entorno para el token del bot
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8164384647:AAEYrQIJeWf__fXdFKiqZRqfCjhHG5kGdJA';
 
 // Función auxiliar para registrar logs
 const logToConsole = (message: string, data?: any) => {
@@ -24,7 +28,28 @@ export async function POST(req: NextRequest) {
     // Telegram envía el mensaje en data.message.text
     const message = data.message?.text || '';
     const chatId = data.message?.chat?.id;
-    logToConsole('Mensaje extraido', { message, chatId });
+    const userId = data.message?.from?.id;
+    logToConsole('Mensaje extraido', { message, chatId, userId });
+    
+    // Verificar si el usuario está autorizado
+    if (userId && !isAuthorizedUser(userId)) {
+      logToConsole('Usuario no autorizado', { userId });
+      // Aun así respondemos con 200 para que Telegram no siga reintentando
+      // pero podemos enviar un mensaje al usuario
+      try {
+        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: 'Lo siento, no tienes autorización para usar este bot.'
+          }),
+        });
+      } catch (e) {
+        logToConsole('Error al enviar mensaje de rechazo', e);
+      }
+      return NextResponse.json({ ok: true, authorized: false });
+    }
 
     // Aquí puedes filtrar solo mensajes que sean URLs
     const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -68,21 +93,23 @@ export async function POST(req: NextRequest) {
       if (chatId) {
         logToConsole('Enviando notificación a Telegram', { chatId });
         try {
-          // Descomenta y configura esto si quieres enviar confirmación al usuario
-          // const botToken = process.env.TELEGRAM_BOT_TOKEN;
-          // if (botToken) {
-          //   await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-          //     method: 'POST',
-          //     headers: { 'Content-Type': 'application/json' },
-          //     body: JSON.stringify({ 
-          //       chat_id: chatId, 
-          //       text: `Artículo generado: ${articleResult.title}` 
-          //     }),
-          //   });
-          //   logToConsole('Notificación enviada a Telegram');
-          // }
+          // Enviar respuesta al usuario con el resumen del artículo generado
+          await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              chat_id: chatId, 
+              text: `✅ Artículo generado: "${articleResult.title}"
+
+${articleResult.excerpt || ''}
+
+Guardado correctamente en la base de datos.`
+            }),
+          });
+          logToConsole('Notificación enviada a Telegram');
         } catch (notifyError) {
-          logToConsole('Error al notificar a Telegram', notifyError);
+          const errorMsg = notifyError instanceof Error ? notifyError.message : 'Error desconocido';
+          logToConsole('Error al notificar a Telegram', { error: errorMsg });
           // Continuar aunque falle la notificación
         }
       }
