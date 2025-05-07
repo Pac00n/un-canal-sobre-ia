@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Este endpoint recibe peticiones POST desde Telegram
-default async function handler(req: NextRequest) {
+export async function POST(req: NextRequest) {
   if (req.method !== 'POST') {
     return NextResponse.json({ error: 'Método no permitido' }, { status: 405 });
   }
@@ -46,4 +46,4 @@ default async function handler(req: NextRequest) {
   }
 }
 
-export { handler as POST };
+
