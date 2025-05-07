@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function AdminNoticias() {
-  const supabase = createClient()
   const router = useRouter()
+  // Solo crear el cliente de Supabase en el navegador, no durante el build
+  const [supabase, setSupabase] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [password, setPassword] = useState('')
@@ -72,17 +73,31 @@ export default function AdminNoticias() {
   const [currentId, setCurrentId] = useState(null)
 
   // Comprobar autenticación al cargar
+  // Inicializar Supabase solo en el navegador
   useEffect(() => {
-    const checkAuth = async () => {
+    // Esto solo se ejecuta en el lado del cliente
+    if (typeof window !== 'undefined') {
+      setSupabase(createClient())
+    }
+  }, [])
+  
+  // Verificar autenticación cuando supabase esté disponible
+  useEffect(() => {
+    if (supabase) {
+      checkAuth()
+    }
+  }, [supabase])
+
+  // Función para verificar autenticación
+  const checkAuth = async () => {
+    if (typeof window !== 'undefined' && supabase) {
       const saved = sessionStorage.getItem('isAdmin')
       if (saved === 'true') {
         setIsAuthenticated(true)
         fetchNoticias()
       }
     }
-    
-    checkAuth()
-  }, [])
+  }
 
   // Funciones de autenticación simple
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -106,6 +121,8 @@ export default function AdminNoticias() {
 
   // Funciones CRUD para noticias
   const fetchNoticias = async () => {
+    if (!supabase) return
+    
     setIsLoading(true)
     
     const { data, error } = await supabase
@@ -140,6 +157,7 @@ export default function AdminNoticias() {
 
   const uploadImage = async () => {
     if (!imageFile) return formData.image_url
+    if (!supabase) return formData.image_url
 
     try {
       // Comprobar si el bucket existe o crearlo
@@ -181,6 +199,12 @@ export default function AdminNoticias() {
     e.preventDefault()
     setIsLoading(true)
     setError('')
+
+    if (!supabase) {
+      setError('No se ha podido conectar con la base de datos')
+      setIsLoading(false)
+      return
+    }
 
     try {
       // Subir imagen si existe
@@ -253,6 +277,10 @@ export default function AdminNoticias() {
 
   const handleDelete = async (id: string | number) => {
     if (!confirm('¿Estás seguro de que quieres eliminar esta noticia?')) return
+    if (!supabase) {
+      setError('No se ha podido conectar con la base de datos')
+      return
+    }
     
     setIsLoading(true)
     
