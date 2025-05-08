@@ -1,0 +1,20 @@
+{
+  "name": "telegram-bot",
+  "version": "1.0.0",
+  "description": "Bot de Telegram para Un Canal Sobre IA",
+  "main": "bot.cjs",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node bot.cjs",
+    "test": "node test-bot.cjs"
+  },
+  "keywords": ["telegram", "bot", "supabase", "openai"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "telegraf": "^4.15.0",
+    "@supabase/supabase-js": "^2.38.4",
+    "dotenv": "^16.3.1",
+    "openai": "^4.20.0"
+  }
+}
