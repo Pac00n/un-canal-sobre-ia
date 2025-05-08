@@ -3,7 +3,13 @@ import { isAuthorizedUser } from './config';
 import { createClient } from '../../../utils/supabase/server';
 
 // Variable de entorno para el token del bot
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8164384647:AAEYrQIJeWf__fXdFKiqZRqfCjhHG5kGdJA';
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+
+// Verificar que el token está configurado
+if (!TELEGRAM_BOT_TOKEN) {
+  console.error('ERROR: TELEGRAM_BOT_TOKEN no está configurado en las variables de entorno');
+  // En producción, sería mejor lanzar un error o manejar esta situación
+}
 
 // Función auxiliar para registrar logs
 const logToConsole = (message: string, data?: any) => {

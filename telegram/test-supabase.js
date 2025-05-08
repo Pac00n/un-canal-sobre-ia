@@ -13,9 +13,16 @@ console.log('NEXT_PUBLIC_SUPABASE_ANON_KEY:', process.env.NEXT_PUBLIC_SUPABASE_A
 console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? 'Configurado ✅' : 'No configurado ❌');
 console.log('OPENAI_ASSISTANT_ID:', process.env.OPENAI_ASSISTANT_ID ? 'Configurado ✅' : 'No configurado ❌');
 
-// Configuración manual (usando valores hardcodeados como respaldo)
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://jicyrqayowgaepkvalno.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImppY3lycWF5b3dnYWVwa3ZhbG5vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTk2NjA4NiwiZXhwIjoyMDYxNTQyMDg2fQ.JNEJpIlTCeXOylmKdFSEipod5VOaauLvpWbL2o6GFjQ';
+// Configuración utilizando solo variables de entorno
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+// Verificar que las variables necesarias existen
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.error('❌ ERROR: Variables de entorno SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY son requeridas.');
+    console.error('Por favor, crea un archivo .env con las variables necesarias.');
+    process.exit(1);
+}
 
 console.log('\nIniciando prueba con:');
 console.log('URL:', SUPABASE_URL);

@@ -30,21 +30,25 @@ Usuario → Bot Telegram → API (Next.js) → OpenAI Assistants API v2 → Supa
 ### 1. Variables de entorno para el Bot (archivo `.env` en carpeta `telegram`):
 
 ```
-TELEGRAM_BOT_TOKEN=8164384647:AAEYrQIJeWf__fXdFKiqZRqfCjhHG5kGdJA
-TELEGRAM_API_TOKEN=telegram-api-token-secreto-2025
-API_ENDPOINT=https://un-canal-sobre-ia.vercel.app/api/telegram-news
-AUTHORIZED_TELEGRAM_USERS=474426118
+TELEGRAM_BOT_TOKEN=tu-token-de-telegram-aqui
+TELEGRAM_API_TOKEN=tu-api-token-secreto-aqui
+API_ENDPOINT=https://tu-dominio-vercel.app/api/telegram-news
+AUTHORIZED_TELEGRAM_USERS=tu-id-de-telegram
 ```
+
+> **NOTA DE SEGURIDAD**: Nunca incluyas tokens o claves reales en la documentación o en archivos que se suban a repositorios. Usa siempre valores de ejemplo.
 
 ### 2. Variables de entorno en Vercel:
 
 ```
 OPENAI_API_KEY=tu-api-key-de-openai
-SUPABASE_URL=https://jicyrqayowgaepkvalno.supabase.co
+SUPABASE_URL=tu-url-de-supabase
 SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key-de-supabase
-TELEGRAM_API_TOKEN=telegram-api-token-secreto-2025
-OPENAI_ASSISTANT_ID=asst_abc123 (opcional, si tienes un asistente específico)
+TELEGRAM_API_TOKEN=tu-api-token-secreto-aqui
+OPENAI_ASSISTANT_ID=tu-assistant-id
 ```
+
+> **IMPORTANTE**: Estas variables deben configurarse en el dashboard de Vercel y nunca deben compartirse públicamente.
 
 ## Cómo probar la integración
 

@@ -1,8 +1,18 @@
 // Script para verificar token de Telegram
 const https = require('https');
 
-// Token del bot
-const TOKEN = '8164384647:AAEYrQIJeWf__fXdFKiqZRqfCjhHG5kGdJA';
+// Cargar variables de entorno
+require('dotenv').config();
+
+// Token del bot desde variables de entorno
+const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+
+// Verificar que el token existe
+if (!TOKEN) {
+  console.error('❌ ERROR: La variable de entorno TELEGRAM_BOT_TOKEN no está configurada.');
+  console.error('Por favor, crea un archivo .env con la variable TELEGRAM_BOT_TOKEN.');
+  process.exit(1);
+}
 
 // URL para verificar el token
 const url = `https://api.telegram.org/bot${TOKEN}/getMe`;
