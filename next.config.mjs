@@ -7,6 +7,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    domains: ['images.unsplash.com', 'picsum.photos', 'source.unsplash.com', 'plus.unsplash.com'],
     unoptimized: true,
   },
 }
