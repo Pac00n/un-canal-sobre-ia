@@ -6,7 +6,6 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
-import type { PageProps } from 'next';
 
 // Allow generating pages on demand for IDs not known at build time
 export const dynamicParams = true;
@@ -33,7 +32,12 @@ async function getNewsItemById(id: string) {
   return data;
 }
 
-export default async function NewsPage({ params }: PageProps<{ id: string }>) {
+interface NewsPageProps {
+  params: { id: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
+
+export default async function NewsPage({ params }: NewsPageProps) {
   const { id } = params;
   const newsItem = await getNewsItemById(id);
   
