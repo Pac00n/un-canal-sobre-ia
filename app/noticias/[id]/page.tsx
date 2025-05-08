@@ -32,12 +32,7 @@ async function getNewsItemById(id: string) {
   return data;
 }
 
-interface NewsPageProps {
-  params: { id: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
-}
-
-export default async function NewsPage({ params }: NewsPageProps) {
+export default async function NewsPage({ params }: { params: { id: string } }) {
   const { id } = params;
   const newsItem = await getNewsItemById(id);
   
