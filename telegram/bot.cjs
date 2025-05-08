@@ -8,7 +8,8 @@ require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 // Configuración
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8164384647:AAEYrQIJeWf__fXdFKiqZRqfCjhHG5kGdJA';
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+// Usar SUPABASE_URL (que el usuario ha confirmado que existe) o NEXT_PUBLIC_SUPABASE_URL como alternativa
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://jicyrqayowgaepkvalno.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const AUTHORIZED_USERS = (process.env.AUTHORIZED_TELEGRAM_USERS || '474426118').split(',').map(id => parseInt(id.trim()));
@@ -35,18 +36,55 @@ log('INFO', 'Iniciando bot con configuración:', {
 
 let bot, supabase, openai;
 try {
+  // Inicializar bot de Telegram
   bot = new Telegraf(BOT_TOKEN);
   log('SUCCESS', 'Bot de Telegram inicializado');
+  
+  // Inicializar cliente Supabase con verificación detallada
   if (SUPABASE_URL && SUPABASE_KEY) {
-    supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-    log('SUCCESS', 'Cliente Supabase inicializado');
-  } else { log('WARN', 'Supabase no configurado - funcionalidad limitada'); }
+    try {
+      log('INFO', 'Intentando conectar a Supabase', { url: SUPABASE_URL, keyLength: SUPABASE_KEY.length });
+      supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: { persistSession: false }
+      });
+      
+      // Verificar conexión con una consulta simple
+      supabase.from('news')
+        .select('id', { count: 'exact', head: true })
+        .then(({ count, error }) => {
+          if (error) {
+            log('ERROR', 'Error al consultar tabla news', { message: error.message, details: error });
+          } else {
+            log('SUCCESS', `Cliente Supabase conectado, tabla news con ${count || 0} registros`);
+          }
+        })
+        .catch(e => {
+          log('ERROR', 'Excepción al consultar tabla news', { message: e.message, details: e });
+        });
+      
+      log('SUCCESS', 'Cliente Supabase inicializado');
+    } catch (supabaseError) {
+      log('ERROR', 'Error al inicializar Supabase', { 
+        message: supabaseError.message, 
+        url: SUPABASE_URL,
+        keyPresent: !!SUPABASE_KEY
+      });
+      // No terminamos el proceso, seguimos con funcionalidad limitada
+    }
+  } else { 
+    log('WARN', 'Supabase no configurado - funcionalidad limitada', {
+      urlPresent: !!SUPABASE_URL,
+      keyPresent: !!SUPABASE_KEY
+    }); 
+  }
+  
+  // Inicializar cliente OpenAI
   if (OPENAI_API_KEY) {
     openai = new OpenAI({ apiKey: OPENAI_API_KEY });
     log('SUCCESS', 'Cliente OpenAI inicializado');
   } else { log('WARN', 'OpenAI no configurado - funcionalidad limitada'); }
 } catch (error) {
-  log('ERROR', 'Error en inicialización de servicios', { message: error.message });
+  log('ERROR', 'Error en inicialización de servicios', { message: error.message, stack: error.stack });
   process.exit(1);
 }
 
@@ -314,8 +352,46 @@ async function generateArticleOpenAI(url) {
 }
 
 async function finalizeAndSaveArticle(ctx, userId, articleData, sourceUrl, imageUrl) {
-  log('INFO', 'Finalizando y guardando artículo', { userId, title: articleData.title, imageUrl });
-  await ctx.replyWithChatAction('typing');
+  // Verificar que tenemos todos los parámetros necesarios
+  if (!ctx) {
+    log('ERROR', 'ctx es undefined en finalizeAndSaveArticle');
+    return;
+  }
+  
+  if (!userId) {
+    log('ERROR', 'userId es undefined en finalizeAndSaveArticle');
+    try {
+      await ctx.reply('❌ Error interno: ID de usuario no válido.');
+    } catch (e) {
+      log('ERROR', 'Error al enviar mensaje de error por userId undefined', { error: e.message });
+    }
+    return;
+  }
+  
+  if (!articleData) {
+    log('ERROR', 'articleData es undefined en finalizeAndSaveArticle');
+    try {
+      await ctx.reply('❌ Error interno: Datos del artículo no válidos.');
+      delete pendingArticles[userId]; // Limpiar el estado en caso de error
+    } catch (e) {
+      log('ERROR', 'Error al enviar mensaje de error por articleData undefined', { error: e.message });
+    }
+    return;
+  }
+  
+  log('INFO', 'Finalizando y guardando artículo', { 
+    userId, 
+    title: articleData?.title || 'Sin título', 
+    imageUrl: imageUrl || 'No proporcionada'
+  });
+  
+  try {
+    await ctx.replyWithChatAction('typing');
+  } catch (chatActionError) {
+    log('WARN', 'No se pudo enviar chatAction', { error: chatActionError.message });
+    // Continuamos aunque falle el chatAction
+  }
+  
   try {
     await ctx.reply('💾 Guardando artículo en Supabase...');
     const newsEntry = {
@@ -360,6 +436,12 @@ async function finalizeAndSaveArticle(ctx, userId, articleData, sourceUrl, image
 }
 
 bot.hears(/https?:\/\/\S+/g, async (ctx) => {
+  // Verificar que ctx.from existe antes de acceder a sus propiedades
+  if (!ctx.from) {
+    log('ERROR', 'ctx.from es undefined al detectar URL');
+    return ctx.reply('❌ Error al procesar la URL. Por favor, intenta nuevamente o contacta al administrador.');
+  }
+  
   const userId = ctx.from.id;
   if (pendingArticles[userId]) {
     return ctx.reply('⚠️ Ya tienes un artículo pendiente. Envía una URL para la imagen, o usa /skip_image o /cancel_article.');
@@ -387,6 +469,12 @@ bot.hears(/https?:\/\/\S+/g, async (ctx) => {
 });
 
 bot.command('skip_image', async (ctx) => {
+  // Verificar que ctx.from existe antes de acceder a sus propiedades
+  if (!ctx.from) {
+    log('ERROR', 'ctx.from es undefined en el comando skip_image');
+    return ctx.reply('❌ Error al procesar el comando. Por favor, intenta nuevamente o contacta al administrador.');
+  }
+  
   const userId = ctx.from.id;
   log('INFO', '/skip_image comando recibido', { userId });
   if (!pendingArticles[userId]) return ctx.reply('🤷 No hay ningún artículo pendiente de imagen.');
@@ -396,6 +484,12 @@ bot.command('skip_image', async (ctx) => {
 });
 
 bot.command('cancel_article', (ctx) => {
+  // Verificar que ctx.from existe antes de acceder a sus propiedades
+  if (!ctx.from) {
+    log('ERROR', 'ctx.from es undefined en el comando cancel_article');
+    return ctx.reply('❌ Error al procesar el comando. Por favor, intenta nuevamente o contacta al administrador.');
+  }
+  
   const userId = ctx.from.id;
   log('INFO', '/cancel_article comando recibido', { userId });
   if (!pendingArticles[userId]) return ctx.reply('🤷 No hay ningún artículo para cancelar.');
@@ -405,6 +499,12 @@ bot.command('cancel_article', (ctx) => {
 
 // Manejador para texto general (potencialmente URLs de imagen)
 bot.on('text', async (ctx) => {
+  // Verificar que ctx.from y ctx.message existen antes de acceder a sus propiedades
+  if (!ctx.from || !ctx.message) {
+    log('ERROR', 'ctx.from o ctx.message es undefined');
+    return ctx.reply('❌ Error al procesar el mensaje. Por favor, intenta nuevamente o contacta al administrador.');
+  }
+  
   const userId = ctx.from.id;
   const text = ctx.message.text;
   
@@ -426,7 +526,9 @@ bot.on('text', async (ctx) => {
 });
 
 bot.catch((err, ctx) => {
-  log('ERROR', `Error no manejado en bot para @${ctx.update.message?.from?.username}`, { error: err, update: ctx.update });
+  // Manejar errores con mayor detalle y seguridad al acceder a propiedades
+  const username = ctx.update?.message?.from?.username || 'desconocido';
+  log('ERROR', `Error no manejado en bot para @${username}`, { error: err, message: err.message, update: ctx.update });
   try {
     ctx.reply('❌ Ocurrió un error inesperado. El desarrollador ha sido notificado.');
   } catch (e) {
