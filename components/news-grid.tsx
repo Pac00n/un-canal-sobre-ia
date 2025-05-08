@@ -18,7 +18,7 @@ export function NewsGrid({ title, items }: NewsGridProps) {
           <h2 className="text-3xl font-bold tracking-tight">{title}</h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((item) => (
-              <Card key={item?.id} className="overflow-hidden border-0 shadow-none card-hover">
+              <Card key={item?.id} className="overflow-hidden border-0 shadow-none transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
                 <CardContent className="p-0">
                   <Link href={`/noticias/${item?.id}`}>
                     <div className="flex flex-col gap-4">
