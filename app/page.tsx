@@ -65,8 +65,7 @@ export default async function Home() {
                 Un Canal Sobre <span className="gradient-text">IA</span>
               </h1>
               <p className="max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Tu fuente de información sobre inteligencia artificial en español. Noticias, tendencias, opiniones y
-                recursos actualizados diariamente.
+                Tu fuente de información sobre inteligencia artificial en español. Noticias y próximamente, otros contenidos.
               </p>
 
               <div className="mt-8">
@@ -89,13 +88,14 @@ export default async function Home() {
             {latestArticles.length > 0 ? (
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto">
                 {latestArticles.map((article) => (
-                  <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow bg-zinc-800 border-zinc-700">
+                  <Card key={article.id} className="overflow-hidden relative group transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-lg bg-zinc-800 border border-transparent hover:border-zinc-700 hover:ring-2 hover:ring-offset-2 hover:ring-offset-zinc-900 hover:ring-primary">
+                    {/* Image */}
                     <div className="relative h-48 w-full">
                       <Image 
                         src={article.imageUrl || '/placeholder.svg'}
                         alt={article.title}
                         fill
-                        className="object-cover"
+ className="object-cover"
                       />
                     </div>
                     <CardContent className="p-4">
